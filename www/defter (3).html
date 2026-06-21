@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Defter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#13201c;
+  --surface:#1b2a24;
+  --surface-2:#23362e;
+  --border:#2f4a3d;
+  --text:#ede9de;
+  --text-muted:#8aa399;
+  --income:#92c2a3;
+  --income-soft:rgba(146,194,163,0.14);
+  --expense:#d98463;
+  --expense-soft:rgba(217,132,99,0.14);
+  --gold:#c9a227;
+  --on-gold:#1b1505;
+  --font-display:'Source Serif 4', Georgia, serif;
+  --font-body:'Inter', sans-serif;
+  --font-mono:'JetBrains Mono', monospace;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  -webkit-font-smoothing:antialiased;
+  transition:background .2s ease, color .2s ease;
+}
+
+/* tema setleri */
+body[data-theme="lacivert"]{
+  --bg:#0f1420; --surface:#161c2c; --surface-2:#1e2640; --border:#2b3454;
+  --text:#e8eaf2; --text-muted:#8891ab;
+  --income:#7fc29a; --income-soft:rgba(127,194,154,0.14);
+  --expense:#e08a72; --expense-soft:rgba(224,138,114,0.14);
+  --gold:#9fb4ff; --on-gold:#10141f;
+}
+body[data-theme="mor"]{
+  --bg:#1a1320; --surface:#241a2c; --surface-2:#2e2238; --border:#46324f;
+  --text:#ede6f0; --text-muted:#a18fab;
+  --income:#9bc99e; --income-soft:rgba(155,201,158,0.14);
+  --expense:#e08a8a; --expense-soft:rgba(224,138,138,0.14);
+  --gold:#cfa4e8; --on-gold:#1a1320;
+}
+body[data-theme="krem"]{
+  --bg:#f4efe4; --surface:#fffdf8; --surface-2:#ece4d2; --border:#d9cdb0;
+  --text:#2d2a22; --text-muted:#85795f;
+  --income:#3f8a5c; --income-soft:rgba(63,138,92,0.12);
+  --expense:#b5562f; --expense-soft:rgba(181,86,47,0.12);
+  --gold:#9c6b12; --on-gold:#fdf6ec;
+}
+#app{max-width:760px;margin:0 auto;padding:28px 18px 60px;}
+
+/* header */
+.masthead{
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);
+  padding-bottom:16px;margin-bottom:22px;
+}
+.masthead h1{
+  font-family:var(--font-display);font-weight:700;font-size:30px;margin:0;
+  letter-spacing:0.3px;
+}
+.masthead .sub{
+  font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.5px;
+}
+
+/* month nav */
+.month-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:18px;
+}
+.month-nav .label{font-family:var(--font-display);font-size:21px;font-weight:600;}
+.nav-btn{
+  background:var(--surface);border:1px solid var(--border);color:var(--text);
+  width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s;
+}
+.nav-btn:hover{background:var(--surface-2);}
+.nav-group{display:flex;gap:8px;}
+
+/* summary ledger row */
+.summary{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;
+  background:var(--border);border:1px solid var(--border);
+  border-radius:10px;overflow:hidden;margin-bottom:22px;
+}
+.summary div{background:var(--surface);padding:14px 16px;}
+.summary .lab{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-muted);margin-bottom:6px;}
+.summary .val{font-family:var(--font-mono);font-size:18px;font-weight:700;}
+.summary .income .val{color:var(--income);}
+.summary .expense .val{color:var(--expense);}
+.summary .net .val{
+  border-bottom:3px double var(--gold);
+  padding-bottom:3px;
+  display:inline-block;
+}
+
+/* calendar grid */
+.weekdays{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:6px;}
+.weekdays div{
+  text-align:center;font-size:10px;letter-spacing:1px;text-transform:uppercase;
+  color:var(--text-muted);padding-bottom:6px;
+}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.day{
+  position:relative;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:8px;
+  min-height:74px;
+  padding:6px 7px;
+  cursor:pointer;
+  display:flex;flex-direction:column;justify-content:space-between;
+  transition:border-color .15s, background .15s;
+}
+.day:hover{border-color:var(--gold);}
+.day.empty{background:transparent;border:none;cursor:default;}
+.day.today{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset;}
+.day.selected{background:var(--surface-2);border-color:var(--gold);}
+.day .dnum{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);}
+.day.today .dnum{color:var(--gold);font-weight:700;}
+.day .amounts{display:flex;flex-direction:column;gap:1px;align-items:flex-end;}
+.day .amounts span{font-family:var(--font-mono);font-size:9px;line-height:1.25;white-space:nowrap;}
+.day .amounts .in{color:var(--income);}
+.day .amounts .out{color:var(--expense);}
+
+/* day panel */
+.panel{
+  margin-top:24px;background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:20px;
+}
+.panel-head{
+  display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px;
+}
+.panel-head h2{font-family:var(--font-display);font-size:18px;margin:0;font-weight:600;}
+.panel-head .close{
+  cursor:pointer;color:var(--text-muted);font-size:13px;background:none;border:none;
+  font-family:var(--font-body);
+}
+.panel-head .close:hover{color:var(--text);}
+
+.entry-list{list-style:none;padding:0;margin:0 0 16px 0;}
+.entry-list li{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:9px 0;border-bottom:1px solid var(--border);
+  font-size:13.5px;
+}
+.entry-list li:last-child{border-bottom:none;}
+.entry-list .desc{color:var(--text);}
+.entry-list .meta{display:flex;align-items:center;gap:10px;}
+.entry-list .amt{font-family:var(--font-mono);font-weight:600;}
+.entry-list .amt.in{color:var(--income);}
+.entry-list .amt.out{color:var(--expense);}
+.del-btn{
+  background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;
+  line-height:1;padding:2px 4px;
+}
+.del-btn:hover{color:var(--expense);}
+.empty-note{color:var(--text-muted);font-size:13px;padding:8px 0 16px;}
+
+/* form */
+.form-row{display:flex;gap:10px;margin-bottom:10px;}
+.toggle{
+  display:flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;flex:1;
+}
+.toggle button{
+  flex:1;padding:9px 0;background:var(--surface);border:none;color:var(--text-muted);
+  cursor:pointer;font-family:var(--font-body);font-size:13px;font-weight:600;
+  transition:all .15s;
+}
+.toggle button.active.in{background:var(--income-soft);color:var(--income);}
+.toggle button.active.out{background:var(--expense-soft);color:var(--expense);}
+input[type=text], input[type=number]{
+  flex:1;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);padding:9px 11px;font-family:var(--font-body);font-size:13.5px;
+}
+input::placeholder{color:var(--text-muted);}
+input:focus{outline:none;border-color:var(--gold);}
+.amount-input{font-family:var(--font-mono);max-width:140px;}
+.add-btn{
+  width:100%;padding:11px;background:var(--gold);color:var(--on-gold);border:none;
+  border-radius:8px;font-weight:700;font-size:13.5px;cursor:pointer;letter-spacing:.3px;
+  font-family:var(--font-body);
+}
+.add-btn:hover{filter:brightness(1.08);}
+.hint{color:var(--text-muted);font-size:12px;margin-top:20px;text-align:center;}
+
+/* view tabs */
+.view-tabs{display:flex;gap:8px;margin-bottom:18px;}
+.view-tabs button{
+  flex:1;padding:9px 0;background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;color:var(--text-muted);cursor:pointer;font-weight:600;
+  font-size:12.5px;letter-spacing:.3px;font-family:var(--font-body);transition:all .15s;
+}
+.view-tabs button.active{background:var(--surface-2);color:var(--gold);border-color:var(--gold);}
+
+/* year view */
+.month-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.month-tile{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:14px;cursor:pointer;transition:border-color .15s;
+}
+.month-tile:hover{border-color:var(--gold);}
+.month-tile .mname{font-family:var(--font-display);font-size:15px;font-weight:600;margin-bottom:10px;}
+.month-tile .mrow{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;margin-bottom:4px;color:var(--text-muted);}
+.month-tile .mrow.in span:last-child{color:var(--income);}
+.month-tile .mrow.out span:last-child{color:var(--expense);}
+.month-tile .mrow.net{border-top:1px solid var(--border);padding-top:5px;margin-top:5px;}
+.month-tile .mrow.net span:last-child{font-weight:700;color:var(--text);}
+
+/* ad slot */
+.ad-slot{
+  margin:20px 0;border:1px dashed var(--border);border-radius:10px;
+  padding:14px;background:var(--surface);
+}
+.ad-slot .ad-label{
+  font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-muted);
+  text-align:center;margin-bottom:8px;font-family:var(--font-mono);
+}
+.ad-slot .ad-inner{
+  min-height:50px;display:flex;align-items:center;justify-content:center;
+  color:var(--text-muted);opacity:.55;font-size:12px;border-radius:6px;
+  background:var(--surface-2);
+}
+
+/* category badge in entry list */
+.cat-badge{
+  font-size:9.5px;background:var(--surface-2);color:var(--text-muted);
+  padding:2px 6px;border-radius:5px;margin-left:6px;letter-spacing:.3px;
+}
+.rec-icon{margin-right:4px;font-size:11px;}
+.day-badge{font-family:var(--font-mono);color:var(--gold);margin-right:6px;font-size:11px;}
+
+/* select (category dropdown) */
+select{
+  background:var(--surface-2);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);padding:9px 11px;font-family:var(--font-body);font-size:13.5px;
+  flex:1;
+}
+select:focus{outline:none;border-color:var(--gold);}
+
+/* recurring checkbox */
+.rec-check{
+  display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-muted);
+  margin-bottom:12px;cursor:pointer;
+}
+.rec-check input{accent-color:var(--gold);}
+
+/* recurring panel trigger (gear icon) + panel */
+.gear-btn{
+  background:var(--surface);border:1px solid var(--border);color:var(--text-muted);
+  width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:15px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all .15s;
+}
+.gear-btn:hover{border-color:var(--gold);color:var(--gold);}
+.gear-btn.active{border-color:var(--gold);color:var(--gold);background:var(--surface-2);}
+.recurring-panel{margin-bottom:22px;margin-top:0;}
+.rec-note{color:var(--text-muted);font-size:12px;padding:0 0 12px;}
+.rec-li{flex-direction:column;align-items:stretch;gap:6px;}
+.rec-top, .rec-bottom{display:flex;justify-content:space-between;align-items:center;}
+.rec-range{font-size:9.5px;color:var(--text-muted);font-family:var(--font-mono);letter-spacing:.2px;}
+.rec-end-control{display:flex;align-items:center;gap:6px;}
+.rec-clear-btn{
+  background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;
+  padding:2px 4px;line-height:1;
+}
+.rec-clear-btn:hover{color:var(--gold);}
+.field-label{font-size:10px;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;}
+input[type=month]{
+  background:var(--surface-2);border:1px solid var(--border);border-radius:6px;
+  color:var(--text);padding:6px 8px;font-family:var(--font-mono);font-size:11px;
+  flex:1;
+}
+input[type=month]:focus{outline:none;border-color:var(--gold);}
+
+/* category report view */
+.cat-scope-label{font-family:var(--font-mono);font-size:11px;color:var(--text-muted);margin-bottom:16px;}
+.cat-section{margin-bottom:24px;}
+.cat-section-title{
+  font-family:var(--font-display);font-size:15px;font-weight:600;margin-bottom:12px;
+  padding-bottom:6px;border-bottom:1px solid var(--border);
+}
+.cat-section-title.income-title{color:var(--income);}
+.cat-section-title.expense-title{color:var(--expense);}
+.cat-row{margin-bottom:12px;}
+.cat-row-top{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px;}
+.cat-row-top .cat-name{color:var(--text);}
+.cat-row-top .cat-amt{font-family:var(--font-mono);color:var(--text-muted);}
+.cat-bar-track{height:7px;background:var(--surface-2);border-radius:4px;overflow:hidden;}
+.cat-bar-fill{height:100%;border-radius:4px;}
+
+/* theme picker */
+.theme-panel{margin-bottom:22px;margin-top:0;}
+.theme-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.theme-card{
+  display:flex;align-items:center;gap:10px;
+  background:var(--surface-2);border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;cursor:pointer;transition:border-color .15s;
+}
+.theme-card:hover{border-color:var(--gold);}
+.theme-card.active{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset;}
+.theme-swatch{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  border:1px solid rgba(255,255,255,0.15);
+}
+.theme-name{font-size:12.5px;font-weight:600;color:var(--text);}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+const MONTHS = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+const WEEKDAYS = ["Pt","Sa","Çr","Pr","Cu","Ct","Pz"];
+const INCOME_CATS = ["Maaş","Ek Gelir","Yatırım","Diğer Gelir"];
+const EXPENSE_CATS = ["Kira","Fatura","Market","Ulaşım","Sağlık","Eğlence","Diğer Gider"];
+const THEMES = [
+  { id: 'yesil',    name: 'Gece Yeşili',   bg: '#13201c', accent: '#c9a227' },
+  { id: 'lacivert', name: 'Lacivert',      bg: '#0f1420', accent: '#9fb4ff' },
+  { id: 'mor',      name: 'Mürekkep Moru', bg: '#1a1320', accent: '#cfa4e8' },
+  { id: 'krem',     name: 'Açık Krem',     bg: '#f4efe4', accent: '#9c6b12' },
+];
+
+let state = {
+  current: new Date(),
+  selectedDate: null,
+  txns: [],
+  recurring: [],
+  loaded: false,
+  formType: 'in',
+  formCategory: INCOME_CATS[0],
+  view: 'month', // 'month' | 'year' | 'categories'
+  catScope: 'month', // 'month' | 'year'
+  showRecurringPanel: false,
+  recFormType: 'in',
+  recFormCategory: INCOME_CATS[0],
+  theme: 'yesil',
+  showThemePanel: false,
+};
+
+const fmt = n => new Intl.NumberFormat('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n) + ' ₺';
+// Takvim hücreleri gibi dar alanlarda kullanılan, gereksiz ",00" küsuratını
+// göstermeyen kompakt format (örn. 60.000,00 yerine 60.000)
+const fmtCompact = n => {
+  const rounded = Math.round(n);
+  if(Math.abs(n - rounded) < 0.005){
+    return new Intl.NumberFormat('tr-TR').format(rounded);
+  }
+  return fmt(n).replace(' ₺','');
+};
+const pad2 = n => String(n).padStart(2,'0');
+const dateKey = d => `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const todayKey = dateKey(new Date());
+
+/* ---------------------------------------------------------------
+   Depolama katmanı
+   ---------------------------------------------------------------
+   - Claude.ai önizlemesinde window.storage kullanılır.
+   - Gerçek Android APK'sında (Capacitor WebView) window.storage
+     bulunmaz; bu durumda localStorage kullanılır (paketlenmiş
+     uygulamada kalıcıdır, claude.ai artifact'lerinden farklı olarak
+     burada güvenle çalışır).
+------------------------------------------------------------------- */
+async function stGet(key){
+  if(window.storage){
+    const res = await window.storage.get(key, false);
+    return res ? res.value : null;
+  }
+  return localStorage.getItem(key);
+}
+async function stSet(key, value){
+  if(window.storage){
+    await window.storage.set(key, value, false);
+  } else {
+    localStorage.setItem(key, value);
+  }
+}
+
+/* ---------------------------------------------------------------
+   Ana ekran widget köprüsü
+   ---------------------------------------------------------------
+   Android APK'sında native bir DefterWidget Capacitor eklentisi
+   varsa, her kayıt/silme sonrası günün ve ayın özetini o eklentiye
+   gönderip ana ekran widget'ının güncellenmesini tetikleriz. Web
+   önizlemesinde bu eklenti bulunmadığı için sessizce atlanır.
+------------------------------------------------------------------- */
+function pushWidgetData(){
+  try{
+    const plugin = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.DefterWidget;
+    if(!plugin) return;
+    const now = new Date();
+    const todayTx = txnsForDate(dateKey(now));
+    const tIn = todayTx.filter(t=>t.type==='in').reduce((a,t)=>a+t.amount,0);
+    const tOut = todayTx.filter(t=>t.type==='out').reduce((a,t)=>a+t.amount,0);
+    const savedCurrent = state.current;
+    state.current = now;
+    const mt = monthTotals();
+    state.current = savedCurrent;
+    plugin.updateSummary({
+      todayIncome: tIn, todayExpense: tOut,
+      monthIncome: mt.inc, monthExpense: mt.exp,
+      monthLabel: `${MONTHS[now.getMonth()]} ${now.getFullYear()}`
+    });
+  }catch(e){ /* widget köprüsü yoksa sessizce yok say */ }
+}
+
+async function loadAll(){
+  try{
+    const raw = await stGet('defter-txns');
+    state.txns = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    state.txns = [];
+  }
+  try{
+    const raw2 = await stGet('defter-recurring');
+    state.recurring = raw2 ? JSON.parse(raw2) : [];
+  }catch(e){
+    state.recurring = [];
+  }
+  try{
+    const raw3 = await stGet('defter-theme');
+    state.theme = raw3 || 'yesil';
+  }catch(e){
+    state.theme = 'yesil';
+  }
+  applyThemeToDom();
+  state.loaded = true;
+  render();
+  pushWidgetData();
+}
+
+async function saveTxns(){
+  try{
+    await stSet('defter-txns', JSON.stringify(state.txns));
+    pushWidgetData();
+  }catch(e){
+    console.error('Kayıt hatası', e);
+  }
+}
+
+async function saveRecurring(){
+  try{
+    await stSet('defter-recurring', JSON.stringify(state.recurring));
+    pushWidgetData();
+  }catch(e){
+    console.error('Kayıt hatası', e);
+  }
+
+}
+
+function addTxn(dateStr, type, category, amount, desc){
+  state.txns.push({
+    id: genId(),
+    date: dateStr, type, category, amount, desc: desc || category
+  });
+  saveTxns();
+  render();
+}
+
+function delTxn(id){
+  state.txns = state.txns.filter(t => t.id !== id);
+  saveTxns();
+  render();
+}
+
+const currentMonthStr = () => {
+  const n = new Date();
+  return `${n.getFullYear()}-${pad2(n.getMonth()+1)}`;
+};
+
+function ymLabel(ym){
+  if(!ym) return null;
+  const [y, m] = ym.split('-').map(Number);
+  return `${MONTHS[m-1]} ${y}`;
+}
+
+function addRecurring(day, type, category, amount, desc, startMonth, endMonth){
+  state.recurring.push({
+    id: genId(),
+    day, type, category, amount, desc: desc || category,
+    startMonth: startMonth || currentMonthStr(),
+    endMonth: endMonth || null,
+  });
+  saveRecurring();
+  render();
+}
+
+function delRecurring(id){
+  state.recurring = state.recurring.filter(r => r.id !== id);
+  saveRecurring();
+  render();
+}
+
+function setRecurringEnd(id, value){
+  const r = state.recurring.find(x => x.id === id);
+  if(!r) return;
+  r.endMonth = value || null;
+  saveRecurring();
+  render();
+}
+
+function clearRecurringEnd(id){
+  const r = state.recurring.find(x => x.id === id);
+  if(!r) return;
+  r.endMonth = null;
+  saveRecurring();
+  render();
+}
+
+function recurringInstancesForMonth(y, m){
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const ymKey = `${y}-${pad2(m+1)}`;
+  return state.recurring
+    .filter(r => {
+      const start = r.startMonth || '0000-01'; // eski kayıtlarda alan yoksa hep aktif kabul et
+      const end = r.endMonth || '9999-12';
+      return ymKey >= start && ymKey <= end;
+    })
+    .map(r => {
+      const day = Math.min(r.day, daysInMonth);
+      const date = `${y}-${pad2(m+1)}-${pad2(day)}`;
+      return {
+        id: `rec-${r.id}-${y}-${m}`,
+        templateId: r.id,
+        date, type: r.type, category: r.category, amount: r.amount, desc: r.desc,
+        recurring: true,
+      };
+    });
+}
+
+function combinedForMonth(y, m){
+  const real = state.txns.filter(t => {
+    const d = new Date(t.date + 'T00:00:00');
+    return d.getFullYear() === y && d.getMonth() === m;
+  });
+  return real.concat(recurringInstancesForMonth(y, m));
+}
+
+function txnsForDate(key){
+  const [y, m] = key.split('-').map(Number);
+  return combinedForMonth(y, m - 1).filter(t => t.date === key);
+}
+
+function monthTotals(){
+  const y = state.current.getFullYear(), m = state.current.getMonth();
+  let inc = 0, exp = 0;
+  combinedForMonth(y, m).forEach(t => {
+    if(t.type === 'in') inc += t.amount; else exp += t.amount;
+  });
+  return {inc, exp, net: inc - exp};
+}
+
+function yearTotals(){
+  const y = state.current.getFullYear();
+  let inc = 0, exp = 0;
+  const perMonth = Array.from({length:12}, () => ({inc:0, exp:0}));
+  for(let m=0; m<12; m++){
+    combinedForMonth(y, m).forEach(t => {
+      if(t.type === 'in'){ inc += t.amount; perMonth[m].inc += t.amount; }
+      else { exp += t.amount; perMonth[m].exp += t.amount; }
+    });
+  }
+  return {inc, exp, net: inc - exp, perMonth};
+}
+
+function categoryTotals(scope){
+  const y = state.current.getFullYear();
+  let list;
+  if(scope === 'month'){
+    list = combinedForMonth(y, state.current.getMonth());
+  } else {
+    list = [];
+    for(let m=0; m<12; m++) list = list.concat(combinedForMonth(y, m));
+  }
+  const incMap = {}, expMap = {};
+  list.forEach(t => {
+    const map = t.type === 'in' ? incMap : expMap;
+    map[t.category] = (map[t.category] || 0) + t.amount;
+  });
+  const toSorted = map => Object.entries(map).sort((a,b) => b[1] - a[1]);
+  return { income: toSorted(incMap), expense: toSorted(expMap) };
+}
+
+function buildCalendarCells(){
+  const y = state.current.getFullYear(), m = state.current.getMonth();
+  const firstDay = new Date(y, m, 1);
+  const startOffset = (firstDay.getDay() + 6) % 7; // Monday-first
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const cells = [];
+  for(let i=0;i<startOffset;i++) cells.push(null);
+  for(let d=1; d<=daysInMonth; d++) cells.push(new Date(y, m, d));
+  return cells;
+}
+
+function categoryBarsHtml(entries, colorVar){
+  if(entries.length === 0) return `<div class="empty-note">Kayıt yok.</div>`;
+  const max = entries[0][1];
+  return entries.map(([cat, amt]) => {
+    const pct = max ? Math.round((amt / max) * 100) : 0;
+    return `
+      <div class="cat-row">
+        <div class="cat-row-top"><span class="cat-name">${escapeHtml(cat)}</span><span class="cat-amt">${fmt(amt)}</span></div>
+        <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${pct}%;background:${colorVar}"></div></div>
+      </div>`;
+  }).join('');
+}
+
+async function saveTheme(){
+  try{
+    await stSet('defter-theme', state.theme);
+  }catch(e){
+    console.error('Tema kayıt hatası', e);
+  }
+}
+
+function applyThemeToDom(){
+  if(state.theme && state.theme !== 'yesil'){
+    document.body.setAttribute('data-theme', state.theme);
+  } else {
+    document.body.removeAttribute('data-theme');
+  }
+}
+
+function setTheme(id){
+  state.theme = id;
+  applyThemeToDom();
+  saveTheme();
+  render();
+}
+
+function toggleThemePanel(){
+  state.showThemePanel = !state.showThemePanel;
+  render();
+}
+
+function themePanelHtml(){
+  if(!state.showThemePanel) return '';
+  const cards = THEMES.map(t => `
+    <div class="theme-card ${state.theme===t.id?'active':''}" onclick="setTheme('${t.id}')">
+      <div class="theme-swatch" style="background:linear-gradient(135deg, ${t.bg} 50%, ${t.accent} 50%);"></div>
+      <span class="theme-name">${t.name}</span>
+    </div>`).join('');
+  return `
+    <div class="panel theme-panel">
+      <div class="panel-head"><h2>Tema</h2></div>
+      <div class="theme-grid">${cards}</div>
+    </div>`;
+}
+
+function recurringPanelHtml(){
+  if(!state.showRecurringPanel) return '';
+  let listHtml = '';
+  if(state.recurring.length === 0){
+    listHtml = `<div class="empty-note">Henüz tekrarlanan işlem eklenmedi.</div>`;
+  } else {
+    listHtml = `<ul class="entry-list">` + state.recurring.map(r => {
+      const startLabel = ymLabel(r.startMonth) || 'Her zaman';
+      const endLabel = r.endMonth ? ymLabel(r.endMonth) : 'sürekli';
+      return `
+      <li class="rec-li">
+        <div class="rec-top">
+          <span class="desc">
+            <span class="day-badge">${r.day}.</span>${escapeHtml(r.desc)}<span class="cat-badge">${escapeHtml(r.category)}</span>
+          </span>
+          <span class="meta">
+            <span class="amt ${r.type === 'in' ? 'in' : 'out'}">${r.type === 'in' ? '+' : '−'}${fmt(r.amount)}</span>
+            <button class="del-btn" onclick="delRecurring('${r.id}')" title="Sil">✕</button>
+          </span>
+        </div>
+        <div class="rec-bottom">
+          <span class="rec-range">${startLabel} → ${endLabel}</span>
+          <span class="rec-end-control">
+            <input type="month" value="${r.endMonth || ''}" onchange="setRecurringEnd('${r.id}', this.value)" title="Bitiş ayı belirle (örn. zam öncesi maaşı burada bitirebilirsin)">
+            ${r.endMonth ? `<button class="rec-clear-btn" onclick="clearRecurringEnd('${r.id}')" title="Bitişi kaldır, süresiz yap">♾</button>` : ''}
+          </span>
+        </div>
+      </li>`;
+    }).join('') + `</ul>`;
+  }
+  return `
+    <div class="panel recurring-panel">
+      <div class="panel-head"><h2>Tekrarlanan İşlemler</h2></div>
+      <div class="rec-note">Her ay belirttiğin günde otomatik olarak takvime işlenir (maaş, kira, abonelik vb). Bir zam/güncelleme yapacaksan eski kaydın bitiş ayını ayarlayıp, yeni tutarla yeni bir kayıt başlatabilirsin.</div>
+      ${listHtml}
+      <div class="form-row">
+        <div class="toggle">
+          <button class="${state.recFormType==='in'?'active in':''}" onclick="setRecFormType('in')">Gelir</button>
+          <button class="${state.recFormType==='out'?'active out':''}" onclick="setRecFormType('out')">Gider</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <input type="number" id="recDayInput" placeholder="Gün (1-31)" min="1" max="31" style="max-width:110px;font-family:var(--font-mono);">
+        <select id="recCategoryInput">
+          ${(state.recFormType==='in'?INCOME_CATS:EXPENSE_CATS).map(c=>`<option value="${c}" ${c===state.recFormCategory?'selected':''}>${c}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row">
+        <input type="text" id="recDescInput" placeholder="Açıklama (örn. kira, maaş)">
+        <input type="number" id="recAmountInput" class="amount-input" placeholder="0,00 ₺" min="0" step="0.01">
+      </div>
+      <div class="form-row">
+        <div style="flex:1;">
+          <div class="field-label">Başlangıç ayı</div>
+          <input type="month" id="recStartInput" value="${currentMonthStr()}">
+        </div>
+        <div style="flex:1;">
+          <div class="field-label">Bitiş ayı (opsiyonel)</div>
+          <input type="month" id="recEndInput">
+        </div>
+      </div>
+      <button class="add-btn" onclick="submitRecurring()">Tekrarlanan Kayıt Ekle</button>
+    </div>`;
+}
+
+function render(){
+  const app = document.getElementById('app');
+  if(!state.loaded){
+    app.innerHTML = `<div style="padding:60px;text-align:center;color:var(--text-muted);font-family:var(--font-mono);">Defter açılıyor…</div>`;
+    return;
+  }
+
+  const adSlotHtml = `
+    <div class="ad-slot">
+      <div class="ad-label">Reklam Alanı</div>
+      <div class="ad-inner" id="ad-banner">Banner reklam burada gösterilecek</div>
+    </div>`;
+
+  const viewTabsHtml = `
+    <div class="view-tabs">
+      <button class="${state.view==='month'?'active':''}" onclick="setView('month')">Aylık</button>
+      <button class="${state.view==='year'?'active':''}" onclick="setView('year')">Yıllık</button>
+      <button class="${state.view==='categories'?'active':''}" onclick="setView('categories')">Kategoriler</button>
+    </div>`;
+
+  const mastheadHtml = `
+    <div class="masthead">
+      <div>
+        <h1>Defter</h1>
+        <div class="sub">kişisel gelir / gider takvimi</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="gear-btn ${state.showThemePanel ? 'active' : ''}" onclick="toggleThemePanel()" title="Tema">🎨</button>
+        <button class="gear-btn ${state.showRecurringPanel ? 'active' : ''}" onclick="toggleRecurringPanel()" title="Tekrarlanan İşlemler">⚙</button>
+      </div>
+    </div>`;
+
+  if(state.view === 'categories'){
+    const scope = state.catScope;
+    const catData = categoryTotals(scope);
+    const scopeLabel = scope === 'month'
+      ? `${MONTHS[state.current.getMonth()]} ${state.current.getFullYear()}`
+      : `${state.current.getFullYear()}`;
+
+    app.innerHTML = `
+      ${mastheadHtml}
+      ${viewTabsHtml}
+      ${recurringPanelHtml()}
+      ${themePanelHtml()}
+
+      <div class="view-tabs" style="margin-bottom:6px;">
+        <button class="${scope==='month'?'active':''}" onclick="setCatScope('month')">Bu Ay</button>
+        <button class="${scope==='year'?'active':''}" onclick="setCatScope('year')">Bu Yıl</button>
+      </div>
+      <div class="cat-scope-label">${scopeLabel}</div>
+
+      ${adSlotHtml}
+
+      <div class="cat-section">
+        <div class="cat-section-title income-title">Gelir Kategorileri</div>
+        ${categoryBarsHtml(catData.income, 'var(--income)')}
+      </div>
+      <div class="cat-section">
+        <div class="cat-section-title expense-title">Gider Kategorileri</div>
+        ${categoryBarsHtml(catData.expense, 'var(--expense)')}
+      </div>
+
+      <div class="hint">Kategori dağılımı, seçilen ay/yıl için tüm kayıtları (tekrarlananlar dahil) içerir.</div>
+    `;
+    return;
+  }
+
+  if(state.view === 'year'){
+    const yt = yearTotals();
+    let tilesHtml = '';
+    MONTHS.forEach((name, idx) => {
+      const m = yt.perMonth[idx];
+      const net = m.inc - m.exp;
+      tilesHtml += `
+        <div class="month-tile" onclick="jumpToMonth(${idx})">
+          <div class="mname">${name}</div>
+          <div class="mrow in"><span>Gelir</span><span>${m.inc ? fmt(m.inc) : '—'}</span></div>
+          <div class="mrow out"><span>Gider</span><span>${m.exp ? fmt(m.exp) : '—'}</span></div>
+          <div class="mrow net"><span>Net</span><span>${fmt(net)}</span></div>
+        </div>`;
+    });
+
+    app.innerHTML = `
+      ${mastheadHtml}
+      ${viewTabsHtml}
+      ${recurringPanelHtml()}
+      ${themePanelHtml()}
+
+      <div class="month-nav">
+        <button class="nav-btn" onclick="changeYear(-1)">‹</button>
+        <div class="label">${state.current.getFullYear()}</div>
+        <button class="nav-btn" onclick="changeYear(1)">›</button>
+      </div>
+
+      <div class="summary">
+        <div class="income"><div class="lab">Yıllık Gelir</div><div class="val">${fmt(yt.inc)}</div></div>
+        <div class="expense"><div class="lab">Yıllık Gider</div><div class="val">${fmt(yt.exp)}</div></div>
+        <div class="net"><div class="lab">Yıllık Net</div><div class="val">${fmt(yt.net)}</div></div>
+      </div>
+
+      ${adSlotHtml}
+
+      <div class="month-grid">${tilesHtml}</div>
+
+      <div class="hint">Bir aya tıklayarak o ayın takvimini açabilirsin.</div>
+    `;
+    return;
+  }
+
+  const totals = monthTotals();
+  const cells = buildCalendarCells();
+
+  let calHtml = '';
+  cells.forEach(d => {
+    if(!d){ calHtml += `<div class="day empty"></div>`; return; }
+    const key = dateKey(d);
+    const dayTxns = txnsForDate(key);
+    const inc = dayTxns.filter(t=>t.type==='in').reduce((a,t)=>a+t.amount,0);
+    const exp = dayTxns.filter(t=>t.type==='out').reduce((a,t)=>a+t.amount,0);
+    const classes = ['day'];
+    if(key === todayKey) classes.push('today');
+    if(key === state.selectedDate) classes.push('selected');
+    calHtml += `
+      <div class="${classes.join(' ')}" onclick="selectDate('${key}')">
+        <div class="dnum">${d.getDate()}</div>
+        <div class="amounts">
+          ${inc ? `<span class="in">+${fmtCompact(inc)}</span>` : ''}
+          ${exp ? `<span class="out">−${fmtCompact(exp)}</span>` : ''}
+        </div>
+      </div>`;
+  });
+
+  let panelHtml = '';
+  if(state.selectedDate){
+    const dObj = new Date(state.selectedDate + 'T00:00:00');
+    const dayLabel = `${dObj.getDate()} ${MONTHS[dObj.getMonth()]} ${dObj.getFullYear()}`;
+    const dayTxns = txnsForDate(state.selectedDate);
+
+    let listHtml = '';
+    if(dayTxns.length === 0){
+      listHtml = `<div class="empty-note">Bu güne henüz kayıt girilmedi.</div>`;
+    } else {
+      listHtml = `<ul class="entry-list">` + dayTxns.map(t => `
+        <li>
+          <span class="desc">
+            ${t.recurring ? '<span class="rec-icon" title="Tekrarlanan işlem">🔁</span>' : ''}${escapeHtml(t.desc)}<span class="cat-badge">${escapeHtml(t.category)}</span>
+          </span>
+          <span class="meta">
+            <span class="amt ${t.type === 'in' ? 'in' : 'out'}">${t.type === 'in' ? '+' : '−'}${fmt(t.amount)}</span>
+            <button class="del-btn" onclick="${t.recurring ? `delRecurring('${t.templateId}')` : `delTxn('${t.id}')`}" title="${t.recurring ? 'Tekrarlayan kaydı sil' : 'Sil'}">✕</button>
+          </span>
+        </li>`).join('') + `</ul>`;
+    }
+
+    panelHtml = `
+      <div class="panel">
+        <div class="panel-head">
+          <h2>${dayLabel}</h2>
+          <button class="close" onclick="selectDate(null)">Kapat</button>
+        </div>
+        ${listHtml}
+        <div class="form-row">
+          <div class="toggle">
+            <button class="${state.formType==='in'?'active in':''}" onclick="setFormType('in')">Gelir</button>
+            <button class="${state.formType==='out'?'active out':''}" onclick="setFormType('out')">Gider</button>
+          </div>
+        </div>
+        <div class="form-row">
+          <select id="categoryInput">
+            ${(state.formType==='in'?INCOME_CATS:EXPENSE_CATS).map(c=>`<option value="${c}" ${c===state.formCategory?'selected':''}>${c}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-row">
+          <input type="text" id="descInput" placeholder="Açıklama (örn. maaş, market)">
+          <input type="number" id="amountInput" class="amount-input" placeholder="0,00 ₺" min="0" step="0.01">
+        </div>
+        <label class="rec-check">
+          <input type="checkbox" id="recurringCheck"> Bu kaydı her ay bu günde tekrarla
+        </label>
+        <button class="add-btn" onclick="submitEntry()">Kaydı Ekle</button>
+      </div>`;
+  }
+
+  app.innerHTML = `
+    ${mastheadHtml}
+    ${viewTabsHtml}
+    ${recurringPanelHtml()}
+      ${themePanelHtml()}
+
+    <div class="month-nav">
+      <button class="nav-btn" onclick="changeMonth(-1)">‹</button>
+      <div class="label">${MONTHS[state.current.getMonth()]} ${state.current.getFullYear()}</div>
+      <button class="nav-btn" onclick="changeMonth(1)">›</button>
+    </div>
+
+    <div class="summary">
+      <div class="income"><div class="lab">Gelir</div><div class="val">${fmt(totals.inc)}</div></div>
+      <div class="expense"><div class="lab">Gider</div><div class="val">${fmt(totals.exp)}</div></div>
+      <div class="net"><div class="lab">Net</div><div class="val">${fmt(totals.net)}</div></div>
+    </div>
+
+    ${adSlotHtml}
+
+    <div class="weekdays">${WEEKDAYS.map(w=>`<div>${w}</div>`).join('')}</div>
+    <div class="grid">${calHtml}</div>
+
+    ${panelHtml}
+
+    <div class="hint">Bir güne tıklayarak gelir veya gider ekleyebilirsin.</div>
+  `;
+}
+
+function escapeHtml(s){
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+function changeMonth(delta){
+  state.current = new Date(state.current.getFullYear(), state.current.getMonth() + delta, 1);
+  render();
+}
+
+function changeYear(delta){
+  state.current = new Date(state.current.getFullYear() + delta, state.current.getMonth(), 1);
+  render();
+}
+
+function setView(v){
+  state.view = v;
+  render();
+}
+
+function jumpToMonth(idx){
+  state.current = new Date(state.current.getFullYear(), idx, 1);
+  state.view = 'month';
+  render();
+}
+
+function selectDate(key){
+  state.selectedDate = key;
+  state.formType = 'in';
+  state.formCategory = INCOME_CATS[0];
+  render();
+}
+
+function setFormType(t){
+  state.formType = t;
+  state.formCategory = (t === 'in' ? INCOME_CATS : EXPENSE_CATS)[0];
+  render();
+  // refocus desc input after re-render
+  const el = document.getElementById('descInput');
+  if(el) el.focus();
+}
+
+function flashError(el){
+  el.focus();
+  el.style.borderColor = 'var(--expense)';
+  setTimeout(()=>{ el.style.borderColor = ''; }, 900);
+}
+
+function submitEntry(){
+  const descEl = document.getElementById('descInput');
+  const amtEl = document.getElementById('amountInput');
+  const catEl = document.getElementById('categoryInput');
+  const recChk = document.getElementById('recurringCheck');
+  const amount = parseFloat(amtEl.value);
+  if(!amount || amount <= 0){
+    flashError(amtEl);
+    return;
+  }
+  const category = catEl.value;
+  const desc = descEl.value.trim();
+  if(recChk && recChk.checked){
+    const dObj = new Date(state.selectedDate + 'T00:00:00');
+    const startMonth = `${dObj.getFullYear()}-${pad2(dObj.getMonth()+1)}`;
+    addRecurring(dObj.getDate(), state.formType, category, amount, desc, startMonth, null);
+  } else {
+    addTxn(state.selectedDate, state.formType, category, amount, desc);
+  }
+}
+
+function setCatScope(s){
+  state.catScope = s;
+  render();
+}
+
+function toggleRecurringPanel(){
+  state.showRecurringPanel = !state.showRecurringPanel;
+  render();
+}
+
+function setRecFormType(t){
+  state.recFormType = t;
+  state.recFormCategory = (t === 'in' ? INCOME_CATS : EXPENSE_CATS)[0];
+  render();
+}
+
+function submitRecurring(){
+  const dayEl = document.getElementById('recDayInput');
+  const descEl = document.getElementById('recDescInput');
+  const amtEl = document.getElementById('recAmountInput');
+  const catEl = document.getElementById('recCategoryInput');
+  const startEl = document.getElementById('recStartInput');
+  const endEl = document.getElementById('recEndInput');
+  const day = parseInt(dayEl.value, 10);
+  const amount = parseFloat(amtEl.value);
+  if(!day || day < 1 || day > 31){
+    flashError(dayEl);
+    return;
+  }
+  if(!amount || amount <= 0){
+    flashError(amtEl);
+    return;
+  }
+  const startMonth = startEl.value || currentMonthStr();
+  const endMonth = endEl.value || null;
+  addRecurring(day, state.recFormType, catEl.value, amount, descEl.value.trim(), startMonth, endMonth);
+}
+
+loadAll();
+
+/* ---------------------------------------------------------------
+   Reklam (AdMob) entegrasyon notu
+   ---------------------------------------------------------------
+   Yukarıdaki #ad-banner alanı web önizlemede sadece bir yer
+   tutucudur. Android APK'sına gerçek banner reklam eklemek için:
+
+   1) @capacitor-community/admob paketini kullan (package.json'da
+      zaten ekli).
+   2) android/app/src/main/AndroidManifest.xml içine AdMob
+      App ID'ni ekle:
+        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID"
+                   android:value="ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY"/>
+   3) Bu dosyada aşağıdaki gibi bir başlatma kodu ekleyebilirsin
+      (Capacitor üzerinden çalışırken):
+
+        import { AdMob } from '@capacitor-community/admob';
+        await AdMob.initialize();
+        await AdMob.showBanner({
+          adId: 'ca-app-pub-XXXXXXXXXXXXXXXX/ZZZZZZZZZZ',
+          adSize: 'BANNER',
+          position: 'BOTTOM_CENTER',
+        });
+
+   Gerçek bir AdMob hesabı ve reklam birimi kimlikleri olmadan
+   reklamlar gösterilemez; bu yüzden kod burada bilinçli olarak
+   bir yer tutucu (placeholder) olarak bırakıldı.
+------------------------------------------------------------------- */
+</script>
+</body>
+</html>
