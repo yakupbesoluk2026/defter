@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Defter</string>
+    <string name="title_activity_main">Defter</string>
+    <string name="package_name">com.defter.app</string>
+    <string name="custom_url_scheme">com.defter.app</string>
+</resources>
