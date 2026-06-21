@@ -1,0 +1,9 @@
+{
+  "appId": "com.defter.app",
+  "appName": "Defter",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": true
+  }
+}
