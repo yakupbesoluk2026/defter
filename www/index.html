@@ -88,12 +88,15 @@ body[data-theme="krem"]{
 
 /* summary ledger row */
 .summary{
-  display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;
+  display:flex;flex-direction:column;gap:1px;
   background:var(--border);border:1px solid var(--border);
   border-radius:10px;overflow:hidden;margin-bottom:22px;
 }
-.summary div{background:var(--surface);padding:14px 16px;}
-.summary .lab{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-muted);margin-bottom:6px;}
+.summary div{
+  background:var(--surface);padding:12px 16px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.summary .lab{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-muted);margin-bottom:0;}
 .summary .val{font-family:var(--font-mono);font-size:18px;font-weight:700;}
 .summary .income .val{color:var(--income);}
 .summary .expense .val{color:var(--expense);}
@@ -185,6 +188,7 @@ input[type=text], input[type=number]{
 input::placeholder{color:var(--text-muted);}
 input:focus{outline:none;border-color:var(--gold);}
 .amount-input{font-family:var(--font-mono);max-width:140px;}
+.amount-input-full{max-width:none;width:100%;}
 .add-btn{
   width:100%;padding:11px;background:var(--gold);color:var(--on-gold);border:none;
   border-radius:8px;font-weight:700;font-size:13.5px;cursor:pointer;letter-spacing:.3px;
@@ -210,11 +214,13 @@ input:focus{outline:none;border-color:var(--gold);}
 }
 .month-tile:hover{border-color:var(--gold);}
 .month-tile .mname{font-family:var(--font-display);font-size:15px;font-weight:600;margin-bottom:10px;}
-.month-tile .mrow{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:11px;margin-bottom:4px;color:var(--text-muted);}
-.month-tile .mrow.in span:last-child{color:var(--income);}
-.month-tile .mrow.out span:last-child{color:var(--expense);}
-.month-tile .mrow.net{border-top:1px solid var(--border);padding-top:5px;margin-top:5px;}
-.month-tile .mrow.net span:last-child{font-weight:700;color:var(--text);}
+.month-tile .mval{font-family:var(--font-mono);font-size:13px;margin-bottom:5px;}
+.month-tile .mval.in{color:var(--income);}
+.month-tile .mval.out{color:var(--expense);}
+.month-tile .mval.net{
+  color:var(--gold);font-weight:700;
+  border-top:1px solid var(--border);padding-top:6px;margin-top:3px;margin-bottom:0;
+}
 
 /* ad slot */
 .ad-slot{
@@ -798,9 +804,9 @@ function render(){
       tilesHtml += `
         <div class="month-tile" onclick="jumpToMonth(${idx})">
           <div class="mname">${name}</div>
-          <div class="mrow in"><span>Gelir</span><span>${m.inc ? fmt(m.inc) : '—'}</span></div>
-          <div class="mrow out"><span>Gider</span><span>${m.exp ? fmt(m.exp) : '—'}</span></div>
-          <div class="mrow net"><span>Net</span><span>${fmt(net)}</span></div>
+          <div class="mval in">${m.inc ? '+' + fmtCompact(m.inc) : '—'}</div>
+          <div class="mval out">${m.exp ? '−' + fmtCompact(m.exp) : '—'}</div>
+          <div class="mval net">${fmtCompact(net)}</div>
         </div>`;
     });
 
@@ -895,8 +901,10 @@ function render(){
           </select>
         </div>
         <div class="form-row">
+          <input type="number" id="amountInput" class="amount-input amount-input-full" placeholder="0,00 ₺" min="0" step="0.01">
+        </div>
+        <div class="form-row">
           <input type="text" id="descInput" placeholder="Açıklama (örn. maaş, market)">
-          <input type="number" id="amountInput" class="amount-input" placeholder="0,00 ₺" min="0" step="0.01">
         </div>
         <label class="rec-check">
           <input type="checkbox" id="recurringCheck"> Bu kaydı her ay bu günde tekrarla
